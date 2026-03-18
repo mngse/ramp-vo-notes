@@ -52,22 +52,38 @@ where we use the shorthand
 for a generic residual vector \(\mathbf{r}\in\R^2\) associated with edge \((l,i)\),
 and define
 \begin{equation}
-\hat{\omega}(\mathbf{T}_i,\mathbf{T}_j,\mathbf{P}_j^l) := \widehat{\mathbf{P}_{ji}^{\prime l}},
+\mathbf{P}_{ji}^{\prime l} = \omega(\mathbf{T}_i,\mathbf{T}_j,\mathbf{P}_j^l)\in\R^{4\times p^2},
 \qquad
-\mathbf{P}_{ji}^{\prime l} = \omega(\mathbf{T}_i,\mathbf{T}_j,\mathbf{P}_j^l),
+\hat{\mathbf{P}}_{ji}^{\prime l} = \hat{\omega}(\mathbf{T}_i,\mathbf{T}_j,\mathbf{P}_j^l)\in\R^{2},
 \end{equation}
-and
-\begin{itemize}
-    \item \(\mathbf{P}_j^l\) is patch \(l\) extracted from source frame \(j\),
-    \item \(r\) is the temporal index radius used to build the patch graph, so only nearby frames satisfying \(|i-j|\le r\) are connected,
-    \item \(\mathcal{E}\) is the bipartite graph of active patch--frame edges \((l,i)\) built with that radius \(r\),
-    \item \(\omega(\mathbf{T}_i,\mathbf{T}_j,\mathbf{P}_j^l)\) is the reprojection operator that maps source patch \(\mathbf{P}_j^l\) into frame \(i\),
-    \item \(\mathbf{P}_{ji}^{\prime l}\) is the current projection of patch \(l\) from source frame \(j\) into frame \(i\), i.e. \(\mathbf{P}_{ji}^{\prime l}=\omega(\mathbf{T}_i,\mathbf{T}_j,\mathbf{P}_j^l)\),
-    \item \(\Delta_{li}\in\R^2\) is a learned 2D correction for that projection,
-    \item \(\sigma_{li}\in\R^{2\times 2}\) is the weight matrix predicted for edge \((l,i)\),
-    \item \(\widehat{\mathbf{P}_{ji}^{\prime l}}\) denotes the 2D center-pixel coordinates extracted from the full projected patch,
-    \item \(\hat{\omega}(\mathbf{T}_i,\mathbf{T}_j,\mathbf{P}_j^l)\) is the center-pixel version of the reprojection operator, namely \(\hat{\omega}(\mathbf{T}_i,\mathbf{T}_j,\mathbf{P}_j^l)=\widehat{\mathbf{P}_{ji}^{\prime l}}\).
-\end{itemize}
+Here \(\mathbf{P}_j^l\in\R^{4\times p^2}\) denotes patch \(l\) extracted from source frame \(j\). The operator \(\omega(\mathbf{T}_i,\mathbf{T}_j,\mathbf{P}_j^l)\) transforms and projects all patch pixels into frame \(i\), while \(\hat{\omega}(\mathbf{T}_i,\mathbf{T}_j,\mathbf{P}_j^l)\) applies the same geometric operations and then extracts only the patch center. So the hat means: same reprojection as \(\omega\), plus center extraction.
+Equivalently, without the weighted-norm shorthand,
+\begin{equation}
+J(\mathbf{X}) =
+\sum_{(l,i)\in \mathcal{E}}
+\left(
+\left[\hat{\mathbf{P}}_{ji}^{\prime l} + \Delta_{li}\right] - \hat{\omega}(\mathbf{T}_i,\mathbf{T}_j,\mathbf{P}_j^l)
+\right)\T
+\sigma_{li}
+\left(
+\left[\hat{\mathbf{P}}_{ji}^{\prime l} + \Delta_{li}\right] - \hat{\omega}(\mathbf{T}_i,\mathbf{T}_j,\mathbf{P}_j^l)
+\right).
+\end{equation}
+Using the explicit reprojection map introduced later in Section~5, the same cost can be written even more explicitly as
+\begin{equation}
+J(\mathbf{X}) =
+\sum_{(l,i)\in \mathcal{E}}
+\left(
+\left[\hat{\mathbf{P}}_{ji}^{\prime l} + \Delta_{li}\right] -
+\operatorname{center}\!\left(\bar{\mathbf{K}}\,\mathbf{T}_i\mathbf{T}_j^{-1}\bar{\mathbf{K}}^{-1}\,\mathbf{P}_j^l\right)
+\right)\T
+\sigma_{li}
+\left(
+\left[\hat{\mathbf{P}}_{ji}^{\prime l} + \Delta_{li}\right] -
+\operatorname{center}\!\left(\bar{\mathbf{K}}\,\mathbf{T}_i\mathbf{T}_j^{-1}\bar{\mathbf{K}}^{-1}\,\mathbf{P}_j^l\right)
+\right),
+\end{equation}
+Here \(\operatorname{center}(\cdot)\) means extraction of the patch center, so it is the same operation denoted elsewhere by the hat. Also, \(\mathcal{E}\) is the active patch--frame graph, and for each edge \((l,i)\in\mathcal{E}\), the DPVO backend predicts a learned 2D correction \(\Delta_{li}\in\R^2\) and a weight matrix \(\sigma_{li}\in\R^{2\times 2}\).
 Thus RAMP-VO still solves a geometric alignment problem, but the correspondence updates \((\Delta_{li},\sigma_{li})\) are predicted by a learned asynchronous encoder and a learned update operator from the DPVO backend.
 
 \section{Asynchronous input stream}
@@ -333,7 +349,7 @@ Therefore, the contribution is not just \emph{using} events, but using them at t
 \EndFor
 
 \Statex \textbf{5. Geometric Update}
-\State \(J(\mathbf{X}) \gets \sum_{(l,i)\in \mathcal{E}} \left\| \left[\widehat{\mathbf{P}_{ji}^{\prime l}} + \Delta_{li}\right] - \hat{\omega}(\mathbf{T}_i,\mathbf{T}_j,\mathbf{P}_j^l) \right\|_{\sigma_{li}}^2\)
+\State \(J(\mathbf{X}) \gets \sum_{(l,i)\in \mathcal{E}} \left\| \left[\hat{\mathbf{P}}_{ji}^{\prime l} + \Delta_{li}\right] - \hat{\omega}(\mathbf{T}_i,\mathbf{T}_j,\mathbf{P}_j^l) \right\|_{\sigma_{li}}^2\)
 \State \(\mathbf{X}_{j} \gets \arg\min_{\mathbf{X}} J(\mathbf{X})\) \Comment{Differentiable bundle adjustment}
 
 \Statex \textbf{6. Pose Forecasting}
@@ -404,6 +420,52 @@ Therefore, the contribution is not just \emph{using} events, but using them at t
     \item Pose forecasting uses spline extrapolation of recent patch tracks to initialize future poses better.
     \item Events help not only because they add another modality, but because the latent state can be updated between image arrivals.
 \end{itemize}
+
+\section{Comparison with the VIO cost}
+
+The explicit matrix form of the RAMP-VO backend cost is
+\begin{equation}
+J(\mathbf{X}) =
+\sum_{(l,i)\in \mathcal{E}}
+\left(
+\left[\hat{\mathbf{P}}_{ji}^{\prime l} + \Delta_{li}\right] -
+\operatorname{center}\!\left(\bar{\mathbf{K}}\,\mathbf{T}_i\mathbf{T}_j^{-1}\bar{\mathbf{K}}^{-1}\,\mathbf{P}_j^l\right)
+\right)\T
+\sigma_{li}
+\left(
+\left[\hat{\mathbf{P}}_{ji}^{\prime l} + \Delta_{li}\right] -
+\operatorname{center}\!\left(\bar{\mathbf{K}}\,\mathbf{T}_i\mathbf{T}_j^{-1}\bar{\mathbf{K}}^{-1}\,\mathbf{P}_j^l\right)
+\right).
+\end{equation}
+Using the notation of the VIO note, the weighted least-squares cost is
+
+
+\begin{align}
+J_{\mathrm{VIO}}(\mathbf{X}) &=
+J_{\mathrm{VIO}}(\mathbf{r}_{\mathrm{prior}},\mathbf{r}_{\mathrm{imu}})
++
+\sum_{(i,\ell)\in \mathcal{C}}
+\left(
+\mathbf{u}_{i\ell} -
+\operatorname{pix}\!\left(
+\mathbf{K}\frac{1}{(\mathbf{P}_{\ell}^{C_i})_z}\mathbf{P}_{\ell}^{C_i}
+\right)
+\right)\T
+\Sigma_{i\ell}^{-1}
+\left(
+\mathbf{u}_{i\ell} -
+\operatorname{pix}\!\left(
+\mathbf{K}\frac{1}{(\mathbf{P}_{\ell}^{C_i})_z}\mathbf{P}_{\ell}^{C_i}
+\right)
+\right),
+\end{align}
+with 
+\[
+\mathbf{P}_{\ell}^{C_i}
+=
+\mathbf{R}_{CB}\!\left(\mathbf{R}_i\T(\mathbf{P}_\ell^W-\mathbf{p}_i)-\mathbf{p}_{BC}^B\right).
+\]
+Structurally, both are weighted sums of quadratic residual terms. The difference is that RAMP-VO uses only patch-reprojection factors over poses and patch depths, with learned corrections \(\Delta_{li}\) and learned weights \(\sigma_{li}\), while VIO combines three heterogeneous factor types: a prior term, IMU factors, and camera reprojection factors. In short, RAMP-VO has one geometrically uniform factor family enriched by neural predictions, whereas VIO merges multiple sensor-model residual families into the same least-squares objective.
 
 
 \appendix
@@ -479,8 +541,128 @@ like Gauss--Newton; when \(\lambda\) is larger, the step becomes more conservati
 
 \subsection{Training of the Neural Components}
 
-The paper describes RAMP-VO as an \emph{end-to-end learned} image-and-event VO system and states that ``we train RAMP-VO'' on an event-augmented version of TartanAir while following the DPVO training scheme and hyperparameters. Concretely, the training set is built from TartanAir image sequences augmented with synthetic events generated by VID2E; during training, frame selection/filtering follows DPVO, and the model is trained for \(350{,}000\) steps on sequences of \(15\) images and \(30\) event stacks.
+RAMP-VO is trained \emph{end-to-end}: the network runs the full pipeline, produces intermediate trajectory estimates, the loss is computed from these outputs, and gradients are backpropagated through the differentiable modules with the standard training step
+\begin{equation}
+\texttt{traj = net(\ldots)}, \qquad \texttt{loss = compute\_losses(traj,\ldots)}, \qquad \texttt{loss.backward()}.
+\end{equation}
+In this sense, the supervision is applied at the output of the whole system, not by assigning a separate local loss to each block. The trainable neural modules are the RAMP encoder blocks \(E_k^s,G_k^s,H_k\), the multi-scale fusion modules producing \(\mathbf{m}_j,\mathbf{c}_j\), and the DPVO backend modules that predict \(\Delta_{li}\) and \(\sigma_{li}\). The differentiable BA layer is part of the gradient path, so these losses propagate through the optimizer updates as well.
 
-For the architecture itself, the trainable neural components are the RAMP encoder blocks \(E_k^s,G_k^s,H_k\), the multi-scale fusion modules producing \(\mathbf{m}_j,\mathbf{c}_j\), and the DPVO backend components that predict \(\Delta_{li}\) and \(\sigma_{li}\). The paper does not state that the DPVO backend is frozen and then reused as-is. Since the system is presented as end-to-end learned and the differentiable BA layer is part of the trainable pipeline, the natural reading is that the neural parts of the DPVO backend are retrained jointly with the new RAMP encoder rather than kept fixed. This last point is an inference from the paper's description, not an explicit sentence in the paper.
+The practical training setup described by the paper is the following: RAMP-VO is trained on an event-augmented version of TartanAir, following the DPVO training scheme and hyperparameters, for \(350{,}000\) steps on sequences of \(15\) images and \(30\) event stacks. In the released implementation, the iterative refinement loop also contains explicit \texttt{detach()} operations on some state variables, so the training graph is end-to-end but kept computationally manageable rather than left to grow without bound across all refinement iterations.
+
+\paragraph{Very simple training-step pseudo-algorithm.}
+\begin{algorithm}[h]
+\caption{One RAMP-VO Training Step}
+\begin{algorithmic}[1]
+\State sample one training sequence of images, event stacks, and ground-truth poses
+\State run the full RAMP-VO forward pass with several internal refinement iterations
+\State obtain the predicted trajectory / patch outputs
+\State compute the training loss from these outputs
+\State call \texttt{loss.backward()} to compute gradients
+\State update the network weights with the optimizer
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Training Losses}
+
+The paper states that RAMP-VO is trained end-to-end, but it does not spell out the loss in the main text. The official training code defines the loss as a weighted sum of a patch-reprojection term and a relative-pose term, accumulated over the intermediate trajectory estimates returned by the network.
+
+For one optimization stage and one active edge \((l,i)\), the code compares the predicted reprojected patch coordinates
+\begin{equation}
+\mathbf{P}_{ji}^{\prime l,\mathrm{pred}} = \omega(\mathbf{T}_i,\mathbf{T}_j,\mathbf{P}_j^l)
+\end{equation}
+with the corresponding ground-truth reprojected patch coordinates
+\begin{equation}
+\mathbf{P}_{ji}^{\prime l,\mathrm{gt}} = \omega(\mathbf{T}_i^{\mathrm{gt}},\mathbf{T}_j^{\mathrm{gt}},\mathbf{P}_j^{l,\mathrm{gt}}).
+\end{equation}
+In the released code these are the quantities called \texttt{coords} and \texttt{coords\_gt}. Let \(v_{li}\) be the corresponding validity mask. The code first forms the per-pixel patch error
+\begin{equation}
+e_{\mathrm{pix}} = \norm{\mathbf{P}_{ji}^{\prime l,\mathrm{pred}}-\mathbf{P}_{ji}^{\prime l,\mathrm{gt}}}_2,
+\end{equation}
+then reshapes each \(p\times p\) patch into \(p^2\) candidate pixel errors and keeps the minimum valid one. Denoting the resulting per-patch error by \(e\), the flow term is
+\begin{equation}
+\mathcal{L}_{\mathrm{flow}} = w_{\mathrm{flow}}\,\mathrm{mean}(e),
+\end{equation}
+where \(w_{\mathrm{flow}}\) is the training hyperparameter called \texttt{flow\_weight} in the code.
+
+The pose term is built from relative poses. Using the same notation as in the rest of the document, let \(\mathbf{T}_i\) denote the predicted camera poses and \(\mathbf{T}_i^{\mathrm{gt}}\) the ground-truth poses. The code forms all pairwise relative motions
+\begin{equation}
+\Delta \mathbf{T}_{ij}^{\mathrm{pred}} = \mathbf{T}_i^{-1}\mathbf{T}_j,
+\qquad
+\Delta \mathbf{T}_{ij}^{\mathrm{gt}} = (\mathbf{T}_i^{\mathrm{gt}})^{-1}\mathbf{T}_j^{\mathrm{gt}},
+\end{equation}
+then measures the relative-pose error in the Lie algebra:
+\begin{equation}
+\mathbf{e}_{ij}^{\mathrm{pose}} = \mathrm{Log}\!\left(\Delta \mathbf{T}_{ij}^{\mathrm{pred}}(\Delta \mathbf{T}_{ij}^{\mathrm{gt}})^{-1}\right).
+\end{equation}
+This error is split into translation and rotation parts,
+\begin{equation}
+t_{ij} = \norm{\mathbf{e}_{ij,1:3}^{\mathrm{pose}}}_2,
+\qquad
+r_{ij} = \norm{\mathbf{e}_{ij,4:6}^{\mathrm{pose}}}_2,
+\end{equation}
+and the pose term is
+\begin{equation}
+\mathcal{L}_{\mathrm{pose}} = w_{\mathrm{pose}}\left(\mathrm{mean}(t_{ij}) + \mathrm{mean}(r_{ij})\right),
+\end{equation}
+where \(w_{\mathrm{pose}}\) is the hyperparameter called \texttt{pose\_weight}.
+
+The total training loss used in the code is therefore
+\begin{equation}
+\mathcal{L} = \sum_{k}\left(\mathcal{L}_{\mathrm{flow}}^{(k)} + \mathcal{L}_{\mathrm{pose}}^{(k)}\right),
+\end{equation}
+with the dependency structure
+\begin{equation}
+\mathcal{L}_{\mathrm{flow}} = \mathcal{L}_{\mathrm{flow}}\!\left(\{\Delta_{li}\}_{(l,i)\in\mathcal{E}}\right),
+\qquad
+\mathcal{L}_{\mathrm{pose}} = \mathcal{L}_{\mathrm{pose}}\!\left(\{\mathbf{T}_i\},\{\Delta_{li},\sigma_{li}\}_{(l,i)\in\mathcal{E}}\right),
+\end{equation}
+where
+\begin{equation}
+(\Delta_{li},\sigma_{li}) = F(\mathbf{P}_{ji}^{\prime l},\mathbf{c}_i,\mathbf{m}_i,\mathbf{m}_j),
+\qquad
+(\mathbf{m}_j,\mathbf{c}_j)=K(\{\state_j^s\}_{s=0}^2).
+\end{equation}
+where \(k\) indexes the successive intermediate trajectory estimates produced during the iterative refinement.
+\begin{itemize}
+    \item \(\mathcal{L}_{\mathrm{flow}}\): supervises local patch correspondences; it directly constrains \(\Delta_{li}\) and indirectly constrains \(\mathbf{m}_j,\mathbf{c}_j\).
+    \item \(\mathcal{L}_{\mathrm{pose}}\): supervises the global camera trajectory after bundle adjustment.
+\end{itemize}
+Only pose loss would give weak and indirect supervision to local patch matching, while only flow loss could give good local matches without the best global motion. In the released training code, the initial ``structure-only'' phase uses only \(\mathcal{L}_{\mathrm{flow}}\) for the first \(1000\) training steps.
+This description comes from the released training code, not from an explicit formula in the paper.
+
+\section{Appendix: performance discussion}
+
+\subsection{Computational Performance Discussion}
+
+The paper argues that RAMP-VO is designed to be computationally efficient at the encoder level because the RAMP encoder is highly parallelizable and avoids the more expensive sequential ConvGRU-style processing used by RAM-Net-like architectures. The strongest explicit evidence given in the paper is the timing comparison for feature extraction: on a Quadro RTX 8000 GPU, RAM Net takes \(370\) ms on average to extract features from a single frame or event stack, while the proposed RAMP encoder takes \(47\) ms, which the authors report as an \(8\times\) speedup.
+
+At the same time, the overall method is not obviously cheap in an absolute sense. The system still combines multi-scale recurrent states, asynchronous event/image processing, learned patch refinement, and a differentiable bundle-adjustment backend. Moreover, the paper reports a substantial training cost: \(350{,}000\) training steps on sequences of \(15\) images and \(30\) event stacks, with roughly \(8\) days of training on a Quadro RTX 8000 GPU.
+
+What the paper does \emph{not} provide is a detailed audit of full-system computational cost or memory usage. In particular, it does not report GPU memory consumption, parameter counts, FLOP counts, or a full end-to-end runtime breakdown separating the encoder, the update operator, and the BA backend.
+
+The safest conclusion is the following: the paper explicitly shows that the RAMP encoder is much faster than a RAM-Net-like alternative, but neither the paper nor the released code provides a complete end-to-end compute or memory audit.
+
+\subsection{Memory Usage Estimate}
+
+Using the official implementation, one can estimate the persistent inference-time GPU buffers. With the default values \(N=2048\) buffered frames, \(M=80\) patches per frame, memory length \(\texttt{mem}=32\), resolution \(640\times 480\), patch size \(P=3\), and mixed precision enabled for the cached feature tensors, the persistent GPU buffers account for roughly
+\begin{equation}
+187 \text{ MiB}.
+\end{equation}
+The dominant term is the cached full-resolution feature tensor \(\texttt{fmap1\_}\), which alone occupies about \(150\) MiB.
+
+To account for model parameters, one can use the released checkpoint sizes as a practical proxy. The official multi-scale checkpoint is \(88{,}269{,}981\) bytes, i.e.
+\begin{equation}
+84.2 \text{ MiB},
+\end{equation}
+while the official single-scale checkpoint is \(41{,}239{,}053\) bytes, i.e.
+\begin{equation}
+39.3 \text{ MiB}.
+\end{equation}
+Adding these to the persistent buffer estimate gives the following lower-bound inference-time memory estimates:
+\begin{align}
+\text{RAMP-VO multi-scale} &\approx 187 + 84.2 = 271.6 \text{ MiB}, \\
+\text{RAMP-VO single-scale} &\approx 187 + 39.3 = 226.8 \text{ MiB}.
+\end{align}
+These numbers are only estimates and should be read as lower bounds. They do not include temporary activations inside the encoder and update operator, correlation volumes, BA workspaces, CUDA runtime overhead, or any training-time storage for gradients and optimizer states. Therefore the actual memory needed to run the full system is higher than these values, potentially by a substantial margin.
 
 \end{document}
