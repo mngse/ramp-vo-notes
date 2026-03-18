@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.11)  18 MAR 2026 20:08
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.11)  18 MAR 2026 20:45
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -820,30 +820,23 @@ pdfTeX warning (ext4): destination with the same identifier (name{figure.1}) ha
 s been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.423 \end{align}
-                 ] [9] (./ramp_vo_notes.aux)
+l.429 
+      ] [9] [10] (./ramp_vo_notes.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
  ***********
-
-
-Package rerunfilecheck Warning: File `ramp_vo_notes.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `ramp_vo_notes.out':
-(rerunfilecheck)             Before: D2AB06C0E08963E05473534899F79EA9;4287
-(rerunfilecheck)             After:  A0300B02FFB36824E2ECBB65905B4132;4305.
+Package rerunfilecheck Info: File `ramp_vo_notes.out' has not changed.
+(rerunfilecheck)             Checksum: 527B6F04B2BCA8D22D9A7B1C19644C60;4820.
  ) 
 Here is how much of TeX's memory you used:
- 22646 strings out of 469006
- 419855 string characters out of 5454813
- 822973 words of memory out of 5000000
- 50902 multiletter control sequences out of 15000+600000
+ 22758 strings out of 469006
+ 422149 string characters out of 5454813
+ 823975 words of memory out of 5000000
+ 51004 multiletter control sequences out of 15000+600000
  639494 words of font info for 82 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 84i,8n,104p,763b,831s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,10n,104p,763b,903s stack positions out of 10000i,1000n,20000p,200000b,200000s
  </Users/seb/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/jknappen/ec/
 tcrm1095.600pk></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/amsf
 onts/cm/cmbx10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/
@@ -865,10 +858,10 @@ live/2026basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/
 texlive/2026basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/lo
 cal/texlive/2026basic/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb
 >
-Output written on ramp_vo_notes.pdf (9 pages, 239415 bytes).
+Output written on ramp_vo_notes.pdf (10 pages, 245266 bytes).
 PDF statistics:
- 283 PDF objects out of 1000 (max. 8388607)
- 232 compressed objects within 3 object streams
- 65 named destinations out of 1000 (max. 500000)
- 181 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 308 PDF objects out of 1000 (max. 8388607)
+ 256 compressed objects within 3 object streams
+ 75 named destinations out of 1000 (max. 500000)
+ 205 words of extra memory for PDF output out of 10000 (max. 10000000)
 

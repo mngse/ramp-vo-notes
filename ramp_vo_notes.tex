@@ -68,7 +68,7 @@ and
     \item \(\widehat{\mathbf{P}_{ji}^{\prime l}}\) denotes the 2D center-pixel coordinates extracted from the full projected patch,
     \item \(\hat{\omega}(\mathbf{T}_i,\mathbf{T}_j,\mathbf{P}_j^l)\) is the center-pixel version of the reprojection operator, namely \(\hat{\omega}(\mathbf{T}_i,\mathbf{T}_j,\mathbf{P}_j^l)=\widehat{\mathbf{P}_{ji}^{\prime l}}\).
 \end{itemize}
-Thus RAMP-VO still solves a geometric alignment problem, but the correspondence updates \((\Delta_{li},\sigma_{li})\) are predicted by a learned asynchronous encoder and a learned DPVO-style update operator.
+Thus RAMP-VO still solves a geometric alignment problem, but the correspondence updates \((\Delta_{li},\sigma_{li})\) are predicted by a learned asynchronous encoder and a learned update operator from the DPVO backend.
 
 \section{Asynchronous input stream}
 
@@ -166,7 +166,7 @@ For every active edge \((l,i)\in\mathcal{E}\), RAMP-VO compares the source patch
     \item a 2D correction \(\Delta_{li}\) telling how the current projection should move in the image plane,
     \item a confidence matrix \(\sigma_{li}\) telling how strongly this correction should influence optimization.
 \end{itemize}
-The paper summarizes the full DPVO-style correlation and refinement stack by the update operator
+The paper summarizes the full correlation and refinement stack of the DPVO backend by the update operator
 \begin{equation}
 \Delta_{li},\sigma_{li} = F(\mathbf{P}_{ji}^{\prime l},\mathbf{c}_i,\mathbf{m}_i,\mathbf{m}_j),
 \end{equation}
@@ -206,7 +206,7 @@ The encoder maintains recurrent multi-scale sensor-agnostic states and updates t
 The processing is split into three stages.
 
 \subsection{Stage 1: sensor-specific pixel-wise encoders}
-For each scale \(s\in\{0,1,2\}\), where \(s\) is the multi-scale index (\(s=0\) full scale, \(s=1\) half scale, \(s=2\) quarter scale because the stride is \(2^s\)), the new input is passed through a sensor-specific encoder:
+For each scale \(s\in\{0,1,2\}\), where \(s\) is the index of the spatial resolution at which the same image/event input is processed (\(s=0\) full resolution, \(s=1\) half resolution, \(s=2\) quarter resolution because the stride is \(2^s\)), the new input is passed through a sensor-specific encoder:
 \begin{equation}
 \mathbf{f}_{k_j}^{s}(t_j) = E_{k_j}^{s}(\mathbf{I}_{k_j}(t_j)).
 \end{equation}
@@ -348,33 +348,51 @@ Therefore, the contribution is not just \emph{using} events, but using them at t
 
 \begin{figure}[h!]
 \centering
-\begin{tikzpicture}[>=Latex]
-  \tikzstyle{block}=[draw,rounded corners,minimum width=38mm,minimum height=10mm,align=center]
+\begin{tikzpicture}[x=1cm,y=1cm,>=Latex]
+  \tikzstyle{block}=[draw,rounded corners,minimum width=45mm,minimum height=11mm,align=center]
+  \tikzstyle{nnblock}=[draw,rounded corners,fill=blue!8,minimum width=45mm,minimum height=11mm,align=center]
+  \tikzstyle{geomblock}=[draw,rounded corners,fill=gray!10,minimum width=45mm,minimum height=11mm,align=center]
 
   \node[block] (stream) at (0,0) {asynchronous input stream\\images + event stacks};
-  \node[block] (pwe) at (0,-2) {sensor-specific multi-scale\\pixel-wise encoders $E_k^s$};
-  \node[block] (recur) at (0,-4) {recurrent updates\\$G_k^s$ and $H_k$};
-  \node[block] (feat) at (0,-6) {matching/context features\\$\mathbf{m}_j,\mathbf{c}_j$};
+  \node[nnblock] (pwe) at (0,-2.4) {NN: sensor-specific multi-scale\\pixel-wise encoders $E_k^s$};
+  \node[nnblock] (recur) at (0,-4.8) {NN: recurrent updates\\$G_k^s$ and $H_k$};
+  \node[nnblock] (feat) at (0,-7.2) {NN features\\$\mathbf{m}_j,\mathbf{c}_j$};
 
-  \node[block] (patch) at (6,0) {event-density patch\\selection};
-  \node[block] (graph) at (6,-2) {patch graph and reprojection\\$\omega(\mathbf{T}_i,\mathbf{T}_j,\mathbf{P}_j^l)$};
-  \node[block] (update) at (6,-4) {update operator $F$\\$\Delta_{li},\sigma_{li}$};
-  \node[block] (ba) at (6,-6) {differentiable BA\\update $\mathbf{T}_i,d_j^l$};
-  \node[block] (forecast) at (3,-8) {spline-based pose forecasting\\for next initialization};
+  \node[block] (patch) at (7.1,0) {event-density patch\\selection};
+  \node[geomblock] (graph) at (7.1,-2.4) {geometry: patch graph\\and reprojection};
+  \node[nnblock] (update) at (7.1,-4.8) {NN prediction: $F$\\predicts $\Delta_{li},\sigma_{li}$};
+  \node[geomblock] (ba) at (7.1,-7.2) {geometry: differentiable BA\\updates $\mathbf{T}_i,d_j^l$};
+  \node[block] (forecast) at (4.25,-10.0) {spline-based pose forecasting\\for next initialization};
+  \coordinate (frontendleftpad) at ($(pwe.west)+(-1.2,0)$);
+  \coordinate (frontendrightpad) at ($(update.east)+(1.2,0)$);
+  \node[draw,dashed,rounded corners,fit=(pwe)(recur)(feat)(update)(frontendleftpad)(frontendrightpad),inner sep=14pt] (frontendbox) {};
+  \node[draw,dashed,rounded corners,fit=(graph)(ba),inner sep=10pt] (backendbox) {};
+  \node[fill=white,inner sep=1.5pt,anchor=east,rotate=90] at ($(frontendbox.west)+(-0.3,+1)$) {\small RAMP-VO learned frontend};
+  \node[fill=white,inner sep=1.5pt,anchor=west,rotate=90] at ($(backendbox.east)+(0.3,-1.5)$) {\small DPVO backend};
 
   \draw[->] (stream) -- (pwe);
   \draw[->] (pwe) -- (recur);
   \draw[->] (recur) -- (feat);
 
-  \draw[->] (stream.east) -- ++(0.8,0) |- (patch.west);
   \draw[->] (patch) -- (graph);
   \draw[->] (graph) -- (update);
   \draw[->] (update) -- (ba);
-  \draw[->] (feat.east) -- ++(1.1,0) |- (update.west);
-  \draw[->] (ba) -- (forecast);
-  \draw[->] (forecast.west) -| (graph.south);
+  \coordinate (barouteA) at (7.1,-8.7);
+  \coordinate (barouteB) at (4.25,-8.7);
+
+  \draw[->] (ba.south) -- (barouteA) -- (barouteB) -- (forecast.north);
+
+  \coordinate (toproute) at (4.25,0);
+  \draw[->] (stream.east) -- (toproute) -- (patch.west);
+
+  \coordinate (midroute) at (3.25,-7.2);
+  \draw[->] (feat.east) -- (midroute) |- (update.west);
+
+  \coordinate (feedbackrouteA) at (9.8,-10.0);
+  \coordinate (feedbackrouteB) at (9.8,-2.4);
+  \draw[->] (forecast.east) -- (feedbackrouteA) -- (feedbackrouteB) -- (graph.east);
 \end{tikzpicture}
-\caption{RAMP-VO combines an asynchronous learned frontend with a geometric bundle-adjustment backend. Events influence both feature formation and pose initialization.}
+\caption{Block decomposition of RAMP-VO. The dashed left group is the RAMP-VO learned frontend, which processes asynchronous images and event stacks and predicts the features \(\mathbf{m}_j,\mathbf{c}_j\) together with the per-edge quantities \(\Delta_{li},\sigma_{li}\). The dashed right group is the DPVO backend inherited from DPVO, which builds reprojection constraints and runs bundle adjustment to update poses and depths.}
 \end{figure}
 
 \section{Main takeaways}
@@ -391,6 +409,23 @@ Therefore, the contribution is not just \emph{using} events, but using them at t
 \appendix
 
 \section{Appendix: technical details}
+
+\subsection{LSTM Refresher}
+
+An LSTM (Long Short-Term Memory) is a recurrent neural-network unit that updates an internal memory state and a hidden state over time. Given an input \(\mathbf{u}_t\), previous hidden state \(\mathbf{h}_{t-1}\), and previous cell state \(\mathbf{c}_{t-1}\), an LSTM computes gates that decide what information to forget, what new information to write, and what part of the internal memory to expose:
+\begin{align}
+\mathbf{f}_t &= \sigma(\mathbf{W}_f[\mathbf{u}_t,\mathbf{h}_{t-1}] + \mathbf{b}_f), \\
+\mathbf{i}_t &= \sigma(\mathbf{W}_i[\mathbf{u}_t,\mathbf{h}_{t-1}] + \mathbf{b}_i), \\
+\tilde{\mathbf{c}}_t &= \tanh(\mathbf{W}_c[\mathbf{u}_t,\mathbf{h}_{t-1}] + \mathbf{b}_c), \\
+\mathbf{o}_t &= \sigma(\mathbf{W}_o[\mathbf{u}_t,\mathbf{h}_{t-1}] + \mathbf{b}_o), \\
+\mathbf{c}_t &= \mathbf{f}_t \odot \mathbf{c}_{t-1} + \mathbf{i}_t \odot \tilde{\mathbf{c}}_t, \\
+\mathbf{h}_t &= \mathbf{o}_t \odot \tanh(\mathbf{c}_t).
+\end{align}
+In RAMP-VO, the paper uses pixel-wise LSTMs, meaning that this recurrent update is applied independently at each pixel location of the feature maps. The role of the LSTM here is to give each sensor stream a temporal memory before the event/image information is fused into the shared state.
+
+\subsection{Encoder Refresher}
+
+In general, an encoder is a neural module that maps raw inputs into a feature representation that is more useful for the downstream task. In this paper, the raw inputs are images or event stacks, and the encoder produces feature maps that retain motion-relevant information while being easier for the tracking and optimization backend to use. The RAMP encoder is not a single block but a composition of three operations: sensor-specific feature extraction \(E_k^s\), temporal memory update \(G_k^s\), and asynchronous cross-sensor fusion \(H_k\). The output of this encoder is then turned into the matching and context features \(\mathbf{m}_j,\mathbf{c}_j\) consumed by the DPVO backend.
 
 \subsection{Differentiable Bundle-Adjustment Layer}
 
@@ -440,6 +475,12 @@ neural update operator \(F\), together with the corrections \(\Delta_{li}\); thi
 how strongly each residual contributes to the normal equations: a larger weight means that the corresponding 
 reprojection error has a stronger influence on the update, while a smaller weight downweights that measurement. The scalar \(\lambda>0\) is a damping parameter. When \(\lambda\) is small, the step behaves 
 like Gauss--Newton; when \(\lambda\) is larger, the step becomes more conservative and numerically stable. This is what is meant by ``damped nonlinear least-squares updates, in the spirit of Levenberg--Marquardt.''
- In the paper's DPVO-style backend, only a small fixed number of such updates is run inside the layer.
+ In the paper's DPVO backend, only a small fixed number of such updates is run inside the layer.
+
+\subsection{Training of the Neural Components}
+
+The paper describes RAMP-VO as an \emph{end-to-end learned} image-and-event VO system and states that ``we train RAMP-VO'' on an event-augmented version of TartanAir while following the DPVO training scheme and hyperparameters. Concretely, the training set is built from TartanAir image sequences augmented with synthetic events generated by VID2E; during training, frame selection/filtering follows DPVO, and the model is trained for \(350{,}000\) steps on sequences of \(15\) images and \(30\) event stacks.
+
+For the architecture itself, the trainable neural components are the RAMP encoder blocks \(E_k^s,G_k^s,H_k\), the multi-scale fusion modules producing \(\mathbf{m}_j,\mathbf{c}_j\), and the DPVO backend components that predict \(\Delta_{li}\) and \(\sigma_{li}\). The paper does not state that the DPVO backend is frozen and then reused as-is. Since the system is presented as end-to-end learned and the differentiable BA layer is part of the trainable pipeline, the natural reading is that the neural parts of the DPVO backend are retrained jointly with the new RAMP encoder rather than kept fixed. This last point is an inference from the paper's description, not an explicit sentence in the paper.
 
 \end{document}
