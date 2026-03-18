@@ -86,6 +86,53 @@ J(\mathbf{X}) =
 Here \(\operatorname{center}(\cdot)\) means extraction of the patch center, so it is the same operation denoted elsewhere by the hat. Also, \(\mathcal{E}\) is the active patch--frame graph, and for each edge \((l,i)\in\mathcal{E}\), the DPVO backend predicts a learned 2D correction \(\Delta_{li}\in\R^2\) and a weight matrix \(\sigma_{li}\in\R^{2\times 2}\).
 Thus RAMP-VO still solves a geometric alignment problem, but the correspondence updates \((\Delta_{li},\sigma_{li})\) are predicted by a learned asynchronous encoder and a learned update operator from the DPVO backend.
 
+\section{Comparison with the VIO cost}
+
+The explicit matrix form of the RAMP-VO backend cost is
+\begin{equation}
+J(\mathbf{X}) =
+\sum_{(l,i)\in \mathcal{E}}
+\left(
+\left[\hat{\mathbf{P}}_{ji}^{\prime l} + \Delta_{li}\right] -
+\operatorname{center}\!\left(\bar{\mathbf{K}}\,\mathbf{T}_i\mathbf{T}_j^{-1}\bar{\mathbf{K}}^{-1}\,\mathbf{P}_j^l\right)
+\right)\T
+\sigma_{li}
+\left(
+\left[\hat{\mathbf{P}}_{ji}^{\prime l} + \Delta_{li}\right] -
+\operatorname{center}\!\left(\bar{\mathbf{K}}\,\mathbf{T}_i\mathbf{T}_j^{-1}\bar{\mathbf{K}}^{-1}\,\mathbf{P}_j^l\right)
+\right).
+\end{equation}
+Using the notation of the VIO note, the weighted least-squares cost is
+
+
+\begin{align}
+J_{\mathrm{VIO}}(\mathbf{X}) &=
+J_{\mathrm{VIO}}(\mathbf{r}_{\mathrm{prior}},\mathbf{r}_{\mathrm{imu}})
++
+\sum_{(i,\ell)\in \mathcal{C}}
+\left(
+\mathbf{u}_{i\ell} -
+\operatorname{pix}\!\left(
+\mathbf{K}\frac{1}{(\mathbf{P}_{\ell}^{C_i})_z}\mathbf{P}_{\ell}^{C_i}
+\right)
+\right)\T
+\Sigma_{i\ell}^{-1}
+\left(
+\mathbf{u}_{i\ell} -
+\operatorname{pix}\!\left(
+\mathbf{K}\frac{1}{(\mathbf{P}_{\ell}^{C_i})_z}\mathbf{P}_{\ell}^{C_i}
+\right)
+\right),
+\end{align}
+with 
+\[
+\mathbf{P}_{\ell}^{C_i}
+=
+\mathbf{R}_{CB}\!\left(\mathbf{R}_i\T(\mathbf{P}_\ell^W-\mathbf{p}_i)-\mathbf{p}_{BC}^B\right).
+\]
+Structurally, both are weighted sums of quadratic residual terms. The difference is that RAMP-VO uses only patch-reprojection factors over poses and patch depths, with learned corrections \(\Delta_{li}\) and learned weights \(\sigma_{li}\), while VIO combines three heterogeneous factor types: a prior term, IMU factors, and camera reprojection factors. In short, RAMP-VO has one geometrically uniform factor family enriched by neural predictions, whereas VIO merges multiple sensor-model residual families into the same least-squares objective.
+
+
 \section{Asynchronous input stream}
 
 The paper uses the word \emph{frame} for both ordinary images and event stacks.
@@ -420,53 +467,6 @@ Therefore, the contribution is not just \emph{using} events, but using them at t
     \item Pose forecasting uses spline extrapolation of recent patch tracks to initialize future poses better.
     \item Events help not only because they add another modality, but because the latent state can be updated between image arrivals.
 \end{itemize}
-
-\section{Comparison with the VIO cost}
-
-The explicit matrix form of the RAMP-VO backend cost is
-\begin{equation}
-J(\mathbf{X}) =
-\sum_{(l,i)\in \mathcal{E}}
-\left(
-\left[\hat{\mathbf{P}}_{ji}^{\prime l} + \Delta_{li}\right] -
-\operatorname{center}\!\left(\bar{\mathbf{K}}\,\mathbf{T}_i\mathbf{T}_j^{-1}\bar{\mathbf{K}}^{-1}\,\mathbf{P}_j^l\right)
-\right)\T
-\sigma_{li}
-\left(
-\left[\hat{\mathbf{P}}_{ji}^{\prime l} + \Delta_{li}\right] -
-\operatorname{center}\!\left(\bar{\mathbf{K}}\,\mathbf{T}_i\mathbf{T}_j^{-1}\bar{\mathbf{K}}^{-1}\,\mathbf{P}_j^l\right)
-\right).
-\end{equation}
-Using the notation of the VIO note, the weighted least-squares cost is
-
-
-\begin{align}
-J_{\mathrm{VIO}}(\mathbf{X}) &=
-J_{\mathrm{VIO}}(\mathbf{r}_{\mathrm{prior}},\mathbf{r}_{\mathrm{imu}})
-+
-\sum_{(i,\ell)\in \mathcal{C}}
-\left(
-\mathbf{u}_{i\ell} -
-\operatorname{pix}\!\left(
-\mathbf{K}\frac{1}{(\mathbf{P}_{\ell}^{C_i})_z}\mathbf{P}_{\ell}^{C_i}
-\right)
-\right)\T
-\Sigma_{i\ell}^{-1}
-\left(
-\mathbf{u}_{i\ell} -
-\operatorname{pix}\!\left(
-\mathbf{K}\frac{1}{(\mathbf{P}_{\ell}^{C_i})_z}\mathbf{P}_{\ell}^{C_i}
-\right)
-\right),
-\end{align}
-with 
-\[
-\mathbf{P}_{\ell}^{C_i}
-=
-\mathbf{R}_{CB}\!\left(\mathbf{R}_i\T(\mathbf{P}_\ell^W-\mathbf{p}_i)-\mathbf{p}_{BC}^B\right).
-\]
-Structurally, both are weighted sums of quadratic residual terms. The difference is that RAMP-VO uses only patch-reprojection factors over poses and patch depths, with learned corrections \(\Delta_{li}\) and learned weights \(\sigma_{li}\), while VIO combines three heterogeneous factor types: a prior term, IMU factors, and camera reprojection factors. In short, RAMP-VO has one geometrically uniform factor family enriched by neural predictions, whereas VIO merges multiple sensor-model residual families into the same least-squares objective.
-
 
 \appendix
 

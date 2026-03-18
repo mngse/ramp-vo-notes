@@ -4,36 +4,36 @@
 \providecommand\HyField@AuxAddToCoFields[2]{}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Goal and optimization variables}{1}{section.1}\protected@file@percent }
 \newlabel{eq:main_ba}{{2}{1}{Goal and optimization variables}{equation.2}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2}Asynchronous input stream}{2}{section.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {3}High-level decomposition}{2}{section.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4}Patch representation}{2}{section.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5}Patch reprojection graph}{3}{section.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6}Learned correspondence update}{3}{section.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {7}Differentiable bundle adjustment backend}{4}{section.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {8}RAMP encoder: why it is different}{4}{section.8}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.1}Stage 1: sensor-specific pixel-wise encoders}{4}{subsection.8.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.2}Stage 2: intra-sensor recurrent update}{4}{subsection.8.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.3}Stage 3: inter-sensor asynchronous fusion}{5}{subsection.8.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {9}Multi-scale fusion into DPVO features}{5}{section.9}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {10}Pose forecasting}{5}{section.10}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {11}What is learned and what is geometric}{6}{section.11}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {12}Why events help in this architecture}{6}{section.12}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {13}Pseudo-algorithm}{6}{section.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Comparison with the VIO cost}{2}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Asynchronous input stream}{2}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}High-level decomposition}{2}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Patch representation}{3}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Patch reprojection graph}{3}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Learned correspondence update}{4}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Differentiable bundle adjustment backend}{4}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9}RAMP encoder: why it is different}{4}{section.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.1}Stage 1: sensor-specific pixel-wise encoders}{5}{subsection.9.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.2}Stage 2: intra-sensor recurrent update}{5}{subsection.9.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.3}Stage 3: inter-sensor asynchronous fusion}{5}{subsection.9.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {10}Multi-scale fusion into DPVO features}{5}{section.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {11}Pose forecasting}{6}{section.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {12}What is learned and what is geometric}{6}{section.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {13}Why events help in this architecture}{6}{section.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {14}Pseudo-algorithm}{6}{section.14}\protected@file@percent }
 \@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces Asynchronous RAMP-VO Update}}{7}{algorithm.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {14}Compact block scheme}{7}{section.14}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {15}Main takeaways}{7}{section.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {15}Compact block scheme}{7}{section.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {16}Main takeaways}{7}{section.16}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Block decomposition of RAMP-VO. The dashed left group is the RAMP-VO learned frontend, which processes asynchronous images and event stacks and predicts the features \(\mathbf  {m}_j,\mathbf  {c}_j\) together with the per-edge quantities \(\Delta _{li},\sigma _{li}\). The dashed right group is the DPVO backend inherited from DPVO, which builds reprojection constraints and runs bundle adjustment to update poses and depths.}}{8}{figure.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {16}Comparison with the VIO cost}{8}{section.16}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {A}Appendix: technical details}{9}{appendix.A}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.1}LSTM Refresher}{9}{subsection.A.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {A}Appendix: technical details}{8}{appendix.A}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.1}LSTM Refresher}{8}{subsection.A.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {A.2}Encoder Refresher}{9}{subsection.A.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {A.3}Differentiable Bundle-Adjustment Layer}{9}{subsection.A.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {A.4}Damped Nonlinear Least-Squares Updates}{9}{subsection.A.4}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {A.5}Training of the Neural Components}{10}{subsection.A.5}\protected@file@percent }
-\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces One RAMP-VO Training Step}}{11}{algorithm.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Very simple training-step pseudo-algorithm.}{11}{algorithm.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.6}Training Losses}{11}{subsection.A.6}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces One RAMP-VO Training Step}}{10}{algorithm.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Very simple training-step pseudo-algorithm.}{10}{algorithm.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.6}Training Losses}{10}{subsection.A.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {B}Appendix: performance discussion}{12}{appendix.B}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {B.1}Computational Performance Discussion}{12}{subsection.B.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {B.2}Memory Usage Estimate}{13}{subsection.B.2}\protected@file@percent }
-\gdef \@abspage@last{13}
+\@writefile{toc}{\contentsline {subsection}{\numberline {B.2}Memory Usage Estimate}{12}{subsection.B.2}\protected@file@percent }
+\gdef \@abspage@last{12}
